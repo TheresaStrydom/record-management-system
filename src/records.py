@@ -1,95 +1,166 @@
-def create_client_record(id, name, addr1, addr2, addr3, city, state, zip_code, country, phone):
-    return {
-        'ID': id,
-        'Type': 'Client',
-        'Name': name,
-        'Address Line 1': addr1,
-        'Address Line 2': addr2,
-        'Address Line 3': addr3,
-        'City': city,
-        'State': state,
-        'Zip Code': zip_code,
-        'Country': country,
-        'Phone Number': phone
-    }
+"""
+This module has to create the CRUD functions by validating information from the GUI
 
-def create_airline_record(id, company_name):
-    return {
-        'ID': id,
-        'Type': 'Airline',
-        'Company Name': company_name
-    }
+Searching for records.
+Creating records.
+Updating records.
+Deleting records
 
-def create_flight_record(client_id, airline_id, date, start_city, end_city):
-    return {
-        'Client_ID': client_id,
-        'Airline_ID': airline_id,
-        'Date': date,
-        'Start City': start_city,
-        'End City': end_city
-    }
+And ensures referential integrity
+"""
 
-def search_records(records, **kwargs):
-    """Search records by fields (e.g., ID=1, Type='Client')."""
-    results = []
-    for record in records:
-        match = True
-        for key, value in kwargs.items():
-            if record.get(key) != value:
-                match = False
-                break
-        if match:
-            results.append(record)
-    return results
+import json
 
-def create_record(records, new_record, record_type):
-    """Add a new record to the list, with type validation."""
-    if record_type == 'Client':
-        # Assume validation here (e.g., all fields present)
-        records.append(new_record)
-    elif record_type == 'Airline':
-        records.append(new_record)
-    elif record_type == 'Flight':
-        records.append(new_record)
+with open("record.jsonl",'r') as file:
+    records = json.load(file)
+
+new_client = {
+    "ID": 2,
+    "Type": "Client",
+    "Name": "Sarah Connor",
+    "Address Line 1": "321 Future St",
+    "Address Line 2": "",
+    "Address Line 3": "",
+    "City": "San Francisco",
+    "State": "CA",
+    "Zip Code": "94101",
+    "Country": "USA",
+    "Phone Number": "+1-555-444-5555"
+}
+data_1 = new_client
+
+new_airline = {
+    "ID": 3,
+    "Type": "Airline",
+    "Company Name": "British Airways"
+}
+
+data_2 = new_airline
+
+# Build check class?
+
+new_flight = {
+    "Client_ID": 2,
+    "Airline_ID": 1,
+    "Type": "Flight",
+    "Date": "2025-10-01T14:30:00",
+    "Start City": "Cape Town",
+    "End City": "New York"
+        }
+
+data_3 = new_flight
+
+
+
+def search_records(records_json, id_search=None,type_search=None):
+    """
+    This function searches the json list using a specific id and type
+    :param records_json: the json object
+    :param id_search: the identification number of the record
+    :param type_search: the entry type,
+    :return: the result of the search
+    """
+    if type_search == 'Client':
+        for client in records_json["Client"]:
+            if client["ID"] == id_search:
+                return print(client)
+        return None
+    elif type_search == 'Airline':
+        for airline in records_json["Airline"]:
+            if airline["ID"] == id_search:
+                return print(airline)
+        return None
+    elif type_search == 'Flight':
+        for flight in records_json["Flight"]:
+            if flight["Client_ID"] == id_search:
+                return print(flight)
+        return None
     else:
-        raise ValueError("Invalid record type")
-    return records  # Return updated list
+        print("Invalid type")
+        return None
 
-def update_record(records, id, updates):
-    """Update a record by ID with new field values."""
-    for record in records:
-        if record.get('ID') == id or record.get('Client_ID') == id:  # Handle Flight IDs
-            record.update(updates)
-            return records
-    print("Record not found for update.")
-    return records
 
-def delete_record(records, id):
-    """Delete a record by ID."""
-    records = [r for r in records if r.get('ID') != id and r.get('Client_ID') != id]
-    return records
+def create_record(records_json, data,type_create):
+    """
+    This function creates a new entry in the json object
+    :param records_json: the json object
+    :param data: a list of data that needs to be added to the json object
+    :param type_create: the type of record that needs to be created
+    :return: result of creation
+    """
+    if type_create == 'Flight':
+        records_json['Flight'].append(data) # NB! Dependent on what is passed to the data file.
+        if records_json[type_create][-1]== data:
+            return "Entry has been updated successfully"
+        else:
+            return "Entry has not been update successfully"
+    else:
+        if records_json[type_create]:
+            max_id = max(type_create["ID"]for type_create in records_json[type_create])
+        else:
+            max_id = 0
+        updates_data = {'ID': max_id + 1, 'Type':type_create}
+        updates_data.update(data)
+        records_json[type_create].append(updates_data)
 
-# Example usage (for local testing)
-if __name__ == "__main__":
-    records = [
-        create_client_record(1, 'John Doe', '123 Main St', '', '', 'New York', 'NY', '10001', 'USA', '123-456-7890'),
-        create_airline_record(1, 'FlyHigh Airlines'),
-        create_flight_record(1, 1, '2025-10-15T10:00:00', 'New York', 'Los Angeles')
-    ]
-    print("Initial records:", records)
+        if records_json[type_create][-1]== updates_data:
+            return "Entry has been created successfully"
+        else:
+            return "Entry has not been created"     #Depends on call.
 
-    # Search example
-    print("Search by ID 1:", search_records(records, ID=1))
+def update_record(records_json,id_update,data):
+    """
+    This function modifies an existing record in the json object
+    :param records_json: the json object
+    :param id_update: the identification number of the record to update
+    :param data: a list of data to update the entry with
+    :return: the result of the update
+    """
+    element_type = data["Type"]
+    id_pos = id_update-1
 
-    # Create example
-    new_client = create_client_record(2, 'Jane Doe', '456 Elm St', '', '', 'Los Angeles', 'CA', '90001', 'USA', '987-654-3210')
-    records = create_record(records, new_client, 'Client')
-    print("After create:", records)
+    for element in records_json[element_type][id_pos]:
+        updates_data = {element:data[element]}
+        records_json[element_type][id_pos].update(updates_data)
 
-    # Update example
-    records = update_record(records, 1, {'Name': 'John Smith'})
-    print("After update:", records)
+    if records_json[element_type][id_pos] == data:
+         return "Entry has been updated successfully"
+    else:
+        return "Entry has not been updated"
 
-    # Delete example
-    records = delete_record(records, 1)
-    print("After delete:", records)
+
+
+def delete_record(records_json,id_delete,delete_type):
+    """
+    This function deletes an existing record in the json object
+    :param delete_type: the type of record that will be recorded
+    :param records_json: the json object
+    :param id_delete: the identification number of the record to delete
+
+    :return: the result of the json manipulation
+    """
+    if delete_type == 'Flight':
+        records_json[delete_type] = [element for element in records_json[delete_type] if
+                                     element["Client_ID"] != id_delete]
+    else:
+        if delete_type in records_json:
+            records_json[delete_type] = [element for element in records_json[delete_type] if
+                                         element["ID"] != id_delete]
+        else:
+            return None
+    return print(records_json[delete_type])
+    # if flights then it takes the client ID the GUI may have to request the flight ID.
+
+#search_records(records, 2, "Flights")
+#create_record(records, data_1,'Clients')
+#create_record(records,data_2,"Airlines")
+#print(create_record(records,data_3,"Flights"))
+
+#print(records["Clients"])
+#update_record(records,1,data_1)
+#update_record(records,3,data_3)
+#with open("record.jsonl",'w') as file:
+#    json.dump(records,file, indent=4)
+
+# print(element,data[element],"....",records_json[element_type][id_pos][element])
+delete_record(records, 1, "Flight")
