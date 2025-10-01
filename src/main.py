@@ -1,8 +1,14 @@
+
+# src/main.py
+# GUI for Record Management System, 
+# handles user interface and integrates with records.py
+
+
 import tkinter as tk
 from tkinter import ttk, messagebox
-''' from src.records import create_record, delete_record, update_record, search_records # Placeholder until merged
-from src.storage import load_records, save_records # Placeholder until merged
-'''
+from records import create_record, delete_record, update_record, search_records # Updated backend
+from storage import load_records, save_records # merged
+
 FILE_PATH = 'src/record/record.json'
 
 def main():

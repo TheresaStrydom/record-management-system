@@ -1,0 +1,10 @@
+import os
+
+# Path to the unzipped skeleton folder
+skeleton_path = r"C:\Users\theas\Downloads\Assignment"
+
+# Walk through the directory and print full paths
+for root, dirs, files in os.walk(skeleton_path):
+    for file in files:
+        full_path = os.path.join(root, file)
+        print(full_path)

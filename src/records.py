@@ -12,7 +12,7 @@ And ensures referential integrity
 import json
 from pickle import GLOBAL
 
-with open("record.jsonl",'r') as file:
+with open("records.json",'r') as file:
     records = json.load(file)
 
 new_client = {
