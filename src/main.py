@@ -6,10 +6,11 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from records import create_record, delete_record, update_record, search_records # Updated backend
-from storage import load_records, save_records # merged
+from records import create_record, delete_record, update_record, search_records # import CRUD functions
+from storage import load_records, save_records # import storage functions
 
-FILE_PATH = 'src/record/record.json'
+FILE_PATH = 'src/record/records.json'
+records = load_records(FILE_PATH)
 
 def main():
     root = tk.Tk()
@@ -17,9 +18,8 @@ def main():
     root.geometry("600x500")
     root.configure(bg="#333333")  # High contrast for accessibility, made background dark gray to help with visibility
 
-    # Placeholder functions, to be integrated to code later
-    # Placeholder functions to be replaced with backend calls after PR merge
-    def create_placeholder():
+    # create_record
+    def create_record_popup():
         """Display a pop-up form to create a new record based on selected type."""
         selected_type = type_var.get()  # Get the selected record type from the dropdown
         create_window = tk.Toplevel(root)  # Create a new window for the form
@@ -60,20 +60,25 @@ def main():
             entry.grid(row=i, column=1, padx=5)  # Position entry
             entries[label_text.split(":")[0]] = entry  # Store for data collection
 
+        
+            """Handle form submission, collecting data with backend integration."""
         def submit():
-            """Handle form submission, collecting data for future backend integration."""
+            global records
             record_data = {key: entry.get() for key, entry in entries.items() if key != "ID (Auto)"}
-            print(f"Submit {selected_type} data: {record_data}")  # Temporary output
-            create_window.destroy()  # Close the pop-up
+            create_record(records, record_data, selected_type)
+            save_records(records, FILE_PATH)
+            messagebox.showinfo("Success", f"{selected_type} record created!")
+            create_window.destroy()
 
         tk.Button(create_window, text="Submit", command=submit).grid(
-            row=len(fields), column=1, pady=10)  # Submit button
+            row=len(fields), column=1, pady=10) # Submit button
+        
         create_window.transient(root)  # Keep pop-up on top of main window
         create_window.grab_set()  # Make pop-up modal
         root.wait_window(create_window)  # Pause until pop-up closes
 
-    def update_placeholder():
-        """Display a pop-up to update an existing record (placeholder for backend integration)."""
+    def update_record_popup():
+        """Display a pop-up to update an existing record ."""
         update_window = tk.Toplevel(root)
         update_window.title("Update Record")
         update_window.geometry("300x150")
@@ -85,10 +90,10 @@ def main():
         update_window.transient(root)
         update_window.grab_set()
         root.wait_window(update_window)
-        # TODO: Integrate with update_record after PR merge
+     
 
-    def delete_placeholder():
-        """Display a pop-up to delete a record by ID (placeholder for backend integration)."""
+    def delete_record_popup():
+        """Display a pop-up to delete a record by ID """
         delete_window = tk.Toplevel(root)
         delete_window.title("Delete Record")
         delete_window.geometry("300x150")
@@ -100,10 +105,9 @@ def main():
         delete_window.transient(root)
         delete_window.grab_set()
         root.wait_window(delete_window)
-        # TODO: Integrate with delete_record after PR merge
-
-    def search_placeholder():
-        """Display a pop-up to search records by ID or type (placeholder for backend integration)."""
+       
+    def search_record_popup():
+        """Display a pop-up to search records by ID or type ."""
         search_window = tk.Toplevel(root)
         search_window.title("Search Record")
         search_window.geometry("300x200")
@@ -118,25 +122,25 @@ def main():
         search_window.transient(root)
         search_window.grab_set()
         root.wait_window(search_window)
-        # TODO: Integrate with search_records after PR merge
+        
 
     # Control Panel section at the top of the window for CRUD operations
     control_frame = tk.Frame(root, bg="#333333")
     control_frame.pack(pady=10)
-    tk.Button(control_frame, text="Create Record", command=create_placeholder,
+    tk.Button(control_frame, text="Create Record", command=create_record_popup,
               underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
-    tk.Button(control_frame, text="Delete Record", command=delete_placeholder,
+    tk.Button(control_frame, text="Delete Record", command=delete_record_popup,
               underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
-    tk.Button(control_frame, text="Update Record", command=update_placeholder,
+    tk.Button(control_frame, text="Update Record", command=update_record_popup,
               underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
-    tk.Button(control_frame, text="Search Record", command=search_placeholder,
+    tk.Button(control_frame, text="Search Record", command=search_record_popup,
               underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
 
     # Keyboard shortcuts for accessibility
-    root.bind("<Alt-c>", lambda e: create_placeholder())
-    root.bind("<Alt-d>", lambda e: delete_placeholder())
-    root.bind("<Alt-u>", lambda e: update_placeholder())
-    root.bind("<Alt-s>", lambda e: search_placeholder())
+    root.bind("<Alt-c>", lambda e: create_record_popup())
+    root.bind("<Alt-d>", lambda e: delete_record_popup())
+    root.bind("<Alt-u>", lambda e: update_record_popup())
+    root.bind("<Alt-s>", lambda e: search_record_popup())
 
     # Form Section to input record details
     form_frame = tk.Frame(root, bg="#333333")
@@ -172,56 +176,4 @@ if __name__ == "__main__":
     
     
     
-    
-    def search_placeholder(): print("Search button clicked - TBD")
-
-    # Control Panel section at the top of the window for CRUD operations
-    control_frame = tk.Frame(root, bg="#333333")
-    control_frame.pack(pady=10)
-    tk.Button(control_frame, text="Create Record", command=create_placeholder,
-              underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
-    tk.Button(control_frame, text="Delete Record", command=delete_placeholder,
-              underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
-    tk.Button(control_frame, text="Update Record", command=update_placeholder,
-              underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
-    tk.Button(control_frame, text="Search Record", command=search_placeholder,
-              underline=0, font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
-
-    # Keyboard shortcuts for accessibility
-    root.bind("<Alt-c>", lambda e: create_placeholder())
-    root.bind("<Alt-d>", lambda e: delete_placeholder())
-    root.bind("<Alt-u>", lambda e: update_placeholder())
-    root.bind("<Alt-s>", lambda e: search_placeholder())
-
-    # Form Section to input record details
-    form_frame = tk.Frame(root, bg="#333333")
-    form_frame.pack(pady=10)
-    tk.Label(form_frame, text="Select Record Type:", fg="white", bg="#333333").grid(row=0, column=0, sticky="e")
-    types = ["Client", "Airline", "Flight"]
-    type_var = tk.StringVar(value=types[0])
-    ttk.Combobox(form_frame, textvariable=type_var, values=types, state="readonly").grid(row=0, column=1, padx=5)
-    tk.Label(form_frame, text="Name:", fg="white", bg="#333333").grid(row=1, column=0, sticky="e")
-    tk.Entry(form_frame).grid(row=1, column=1, padx=5)
-
-    # Display Area, shows the records in a list format
-    display_frame = tk.Frame(root, bg="#333333")
-    display_frame.pack(pady=10, fill="both", expand=True)
-    tk.Label(display_frame, text="Records:", fg="white", bg="#333333").pack()
-    tree = ttk.Treeview(display_frame, columns=("ID", "Type", "Name", "Address Line 1", "City", "Phone Number"), show="headings")
-    for col in tree["columns"]:
-        tree.heading(col, text=col.replace("_", " ").title())
-    tree.insert("", "end", values=("1", "Client", "John Doe", "123 St", "London", "123-456-7890"))
-    tree.pack(fill="both", expand=True)
-    scrollbar = ttk.Scrollbar(display_frame, orient="vertical", command=tree.yview)
-    tree.configure(yscrollcommand=scrollbar.set)
-    scrollbar.pack(side=tk.RIGHT, fill="y")
-
-    # Set initial focus to the main window, supporting motor-impaired users who rely on the Tab key to move between fields
-    root.focus_set()
-    form_frame.focus_set()
-
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
     
