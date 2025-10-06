@@ -238,13 +238,13 @@ def main():
             try:
                 if is_flight:
                     # Pass type_create="Flight" and both IDs
-                    update_record(records, update_data, type_create="Flight", client_id=client_id, airline_id=airline_id)
+                    update_record(records, "Flight", update_data, client_id, airline_id)
                 else:
                     # Determine type based on which ID is filled
                     if client_id and not airline_id:
-                        update_record(records, int(client_id), update_data, type_create="Client")
+                        update_record(records, "Client", update_data, client_id, None)
                     elif airline_id and not client_id:
-                        update_record(records, int(airline_id), update_data, type_create="Airline")
+                        update_record(records, "Airline", update_data, None, airline_id)
                 save_records(records, FILE_PATH)
                 messagebox.showinfo("Success", f"Updated: {', '.join(updated_fields)} successfully.")
                 # Refresh Treeview
