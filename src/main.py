@@ -238,7 +238,7 @@ def main():
             try:
                 if is_flight:
                     # Pass type_create="Flight" and both IDs
-                    update_record(records, None, update_data, type_create="Flight", client_id=client_id, airline_id=airline_id)
+                    update_record(records, update_data, type_create="Flight", client_id=client_id, airline_id=airline_id)
                 else:
                     # Determine type based on which ID is filled
                     if client_id and not airline_id:
