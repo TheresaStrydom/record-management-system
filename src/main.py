@@ -306,7 +306,7 @@ def main():
                     messagebox.showwarning("Input Error", "Both Airline ID and Client ID must be entered to delete a Flight.")
                     return
                 # Call backend for flight
-                delete_record(records, airline_id, client_id, "Flight")
+                delete_record(records, "Flight", client_id, airline_id)
                 msg = f"Flight with Airline ID {airline_id} and Client ID {client_id} deleted."
             else:
                 if not airline_id and not client_id:
@@ -314,11 +314,11 @@ def main():
                     return
                 if airline_id and not client_id:
                     # Delete Airline
-                    delete_record(records, airline_id, None, "Airline")
+                    delete_record(records, "Airline", None, airline_id)
                     msg = f"Airline with ID {airline_id} deleted."
                 elif client_id and not airline_id:
                     # Delete Client
-                    delete_record(records, None, client_id, "Client")
+                    delete_record(records, "Client", client_id, None)
                     msg = f"Client with ID {client_id} deleted."
                 else:
                     # If both are filled but flight not ticked, ask user to tick flight or clear one
