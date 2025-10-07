@@ -3,67 +3,72 @@ import os
 
 def load_records(file_path='../records.json'):
     """
-    Load the list of records from a JSON file if it exists.
-    Returns an empty list if the file doesn't exist or is corrupted.
+    Load the nested records from a JSON file if it exists.
+    Returns an empty dict if the file doesn't exist or is corrupted.
     """
     if os.path.exists(file_path):
         try:
             with open(file_path, 'r') as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            print("Error: Corrupted JSON file. Starting with an empty list.")
-            return []
+            print("Error: Corrupted JSON file. Starting with an empty dict.")
+            return {"Clients": [], "Airlines": [], "Flights": []}
         except Exception as e:
             print(f"Error loading records: {e}")
-            return []
+            return {"Clients": [], "Airlines": [], "Flights": []}
     else:
-        print("No records file found. Starting with an empty list.")
-    return []
+        print("No records file found. Starting with an empty dict.")
+    return {"Clients": [], "Airlines": [], "Flights": []}
 
 def save_records(records, file_path='../records.json'):
     """
-    Save the list of records to a JSON file.
+    Save the nested records dict to a JSON file.
     Overwrites the file if it exists.
     """
     try:
         with open(file_path, 'w') as f:
-            json.dump(records, f, indent=4)  # Indent for human-readable format
+            json.dump(records, f, indent=4)
         print("Records saved successfully.")
     except Exception as e:
         print(f"Error saving records: {e}")
 
 # Simple test block to verify functionality standalone
 # Run this file directly: python src/storage.py
-# (Comment out or remove before final submission if not needed)
 if __name__ == "__main__":
-    # Sample records matching assignment formats
-    test_records = [
-        {
-            "ID": 1,
-            "Type": "Client",
-            "Name": "John Doe",
-            "Address Line 1": "123 Main St",
-            "Address Line 2": "",
-            "Address Line 3": "",
-            "City": "New York",
-            "State": "NY",
-            "Zip Code": "10001",
-            "Country": "USA",
-            "Phone Number": "123-456-7890"
-        },
-        {
-            "ID": 1,
-            "Type": "Airline",
-            "Company Name": "FlyHigh Airlines"
-        },
-        {
-            "Client_ID": 1,
-            "Airline_ID": 1,
-            "Date": "2025-10-15T10:00:00",
-            "Start City": "New York",
-            "End City": "Los Angeles"
-        }
-    ]
+    # Sample nested records
+    test_records = {
+        "Clients": [
+            {
+                "ID": 1,
+                "Type": "Client",
+                "Name": "John Doe",
+                "Address Line 1": "123 Main St",
+                "Address Line 2": "",
+                "Address Line 3": "",
+                "City": "New York",
+                "State": "NY",
+                "Zip Code": "10001",
+                "Country": "USA",
+                "Phone Number": "123-456-7890"
+            }
+        ],
+        "Airlines": [
+            {
+                "ID": 1,
+                "Type": "Airline",
+                "Company Name": "FlyHigh Airlines"
+            }
+        ],
+        "Flights": [
+            {
+                "Client_ID": 1,
+                "Airline_ID": 1,
+                "Date": "2025-10-15T10:00:00",
+                "Start City": "New York",
+                "End City": "Los Angeles"
+            }
+        ]
+    }
     
     # Test save
     save_records(test_records)
