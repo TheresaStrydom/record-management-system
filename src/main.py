@@ -57,7 +57,22 @@ def main():
     for col in columns:
         tree.heading(col, text=col)
         tree.column(col, width=100)
-    tree.pack(fill="both", expand=True)
+        tree.pack(fill="both", expand=True)
+
+    # Display all records when GUI starts
+    for record_type in records:
+        for record in records[record_type]:
+            # Only display if record is a dict and has an "ID" field
+            if isinstance(record, dict) and "ID" in record:
+                values = (
+                    record.get("ID", ""),
+                    record.get("Type", ""),
+                    record.get("Name", ""),
+                    record.get("Address Line 1", ""),
+                    record.get("City", ""),
+                    record.get("Phone Number", "")
+                )
+                tree.insert("", "end", values=values)
 
     # create_record
     def create_record_popup():
@@ -306,7 +321,7 @@ def main():
                     messagebox.showwarning("Input Error", "Both Airline ID and Client ID must be entered to delete a Flight.")
                     return
                 # Call backend for flight
-                delete_record(records, "Flight", client_id, airline_id)
+                delete_record(records, client_id, "Flight")
                 msg = f"Flight with Airline ID {airline_id} and Client ID {client_id} deleted."
             else:
                 if not airline_id and not client_id:
@@ -314,11 +329,11 @@ def main():
                     return
                 if airline_id and not client_id:
                     # Delete Airline
-                    delete_record(records, "Airline", None, airline_id)
+                    delete_record(records, airline_id, "Airline")
                     msg = f"Airline with ID {airline_id} deleted."
                 elif client_id and not airline_id:
                     # Delete Client
-                    delete_record(records, "Client", client_id, None)
+                    delete_record(records, client_id, "Client")
                     msg = f"Client with ID {client_id} deleted."
                 else:
                     # If both are filled but flight not ticked, ask user to tick flight or clear one
@@ -332,15 +347,17 @@ def main():
                 tree.delete(row)
             for record_type in records:
                 for record in records[record_type]:
-                    values = (
-                        record.get("ID", ""),
-                        record.get("Type", ""),
-                        record.get("Name", ""),
-                        record.get("Address Line 1", ""),
-                        record.get("City", ""),
-                        record.get("Phone Number", "")
-                    )
-                    tree.insert("", "end", values=values)
+                    # Only display if record is a dict (not a string or empty)
+                    if isinstance(record, dict):
+                        values = (
+                            record.get("ID", ""),
+                            record.get("Type", ""),
+                            record.get("Name", ""),
+                            record.get("Address Line 1", ""),
+                            record.get("City", ""),
+                            record.get("Phone Number", "")
+                        )
+                        tree.insert("", "end", values=values)
             delete_window.destroy()
 
         tk.Button(delete_window, text="Delete", command=submit_delete).grid(row=5, column=9, pady=12)
@@ -451,18 +468,18 @@ def main():
     # Form Section to input record details
     form_frame = tk.Frame(root, bg="#333333")
     form_frame.pack(pady=10)
-    tk.Label(form_frame, text="Select Record Type:", fg="white", bg="#333333").grid(row=0, column=0, sticky="e")
+    # tk.Label(form_frame, text="Select Record Type:", fg="white", bg="#333333").grid(row=0, column=0, sticky="e")
     types = ["Client", "Airline"]
     type_var = tk.StringVar(value=types[0])  # Default to Client
-    ttk.Combobox(form_frame, textvariable=type_var, values=types, state="readonly").grid(row=0, column=1, padx=5)
-    tk.Label(form_frame, text="Name:", fg="white", bg="#333333").grid(row=1, column=0, sticky="e")
-    tk.Entry(form_frame).grid(row=1, column=1, padx=5)
+    # ttk.Combobox(form_frame, textvariable=type_var, values=types, state="readonly").grid(row=0, column=1, padx=5)
+    # tk.Label(form_frame, text="Name:", fg="white", bg="#333333").grid(row=1, column=0, sticky="e")
+    # tk.Entry(form_frame).grid(row=1, column=1, padx=5) 
 
 
 
-        # Set initial focus to the main window, supporting motor-impaired users
+    # Set initial focus to the main window, supporting motor-impaired users
     root.focus_set()
-    form_frame.focus_set()
+    # removed: form_frame.focus_set()
 
     root.mainloop()
 
