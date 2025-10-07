@@ -12,7 +12,7 @@ from records import create_record, delete_record, update_record, search_records 
 from storage import load_records, save_records # import storage functions
 from functools import partial
 
-FILE_PATH = 'records.json'
+FILE_PATH = 'data/test_records.json'
 records = load_records(FILE_PATH)
 
 
