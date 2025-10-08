@@ -98,7 +98,7 @@ def create_record(records_json, data, type_create):
         if records_json[type_create] == [{}]:
             max_id = 0
         else:
-            max_id = max(type_create["ID"] for type_create in records_json[type_create])
+            max_id = max(r["ID"] for r in records_json[type_create])
 
         updates_data = {'ID': max_id + 1, 'Type':type_create}
         try:
@@ -226,4 +226,5 @@ def delete_record(records_json,type_delete, client_id=None, airline_id = None):
     else:
         result = -2
         return result # TYPE NOT FOUND
+
 
