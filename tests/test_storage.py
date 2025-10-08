@@ -6,7 +6,7 @@ from storage import load_records, save_records
 
 @pytest.fixture
 def temp_file():
-    file_path = '../test_records.json'  # Temp file in root to avoid overwriting real data
+    file_path = '../test_records.json'  
     if os.path.exists(file_path):
         os.remove(file_path)
     yield file_path
