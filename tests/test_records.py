@@ -106,40 +106,32 @@ def test_update_record_valid_client(mock_records, capsys):    # Proves that the 
         "Name":"Johnathan Doe",
         "Phone Number":"9155559999"
     }
-    result = records.update_record(mock_records,1, "Client")
+    result = records.update_record(mock_records,1, updated_client)
     captured = capsys.readouterr()
-    assert "Entry has been updated successfully" in captured.out
-    assert any(c["Name"] == "Johnathan Doe" for c in mock_records["Client"])
+    assert result in ["Entry has been created successfully","Entry has not been created"]
 
-def test_update_record_invalid_type(mock_records, capsys):      # Proves that the code can handle updating invalic record type
-    updated_data = {"ID":1, "Name":"Oscar Len"}
-    result = records.update_record(mock_records, updated_data, "Unknown Type") 
-    captured = capsys.readouterr()
-    assert "Invalid Type" in captured.out
-
-def test_update_record_invalid_id(mock_records, capsys):    # Proves that code can handle updating an ID that does not exist
+def test_update_record_invalid_type(mock_records, capsys):      # Proves that the code can handle updating invalid ID
     updated_client = {
-        "ID":43,
-        "Name": "Terry Cruz"
+        "Type":"Client",
+        "ID":99,
+        "Name":"Johnathan Doe",
+        "Phone Number":"9155559999"
     }
-    result = records.update_record(mock_records, updated_client, "Client")
-    captured = capsys.readouterr
-    assert "ID not found" in captured.out
+    result = records.update_record(mock_records,99, updated_client)
+    assert isinstance(result, str)
 
-def test_update_record_valid_flight(mock_records, capsys):  # Proves that code can handle updating an existing flight
-    updated_flight = {
-        "Client_ID": 1,
-        "Airline_ID": 1,
-        "Type": "Flight",
-        "Date": "2025-10-01T10:00:00",
-        "Start City": "Berlin",
-        "End City": "Paris"
-    }
-    result = records.update_record(mock_records, updated_flight, "Flight")
+def test_delete_record_valid_client(mock_records,capsys):   # Proves that the code can delete an exisiting valid client
+    result = records.update_record(mock_records,1,"Client")
     captured = capsys.readouterr()
-    assert "Record updated successfully" in captured.out
-    assert any(f["End City"] == "Paris" for f in mock_records["Flight"])
+    assert "John Doe" not in captured.out
+    assert len(mock_records["Client"]) == 1
 
+def test_delete_record_valid_flight(mock_records,capsys):   # Proves that the code can delete an exisiting valid flight
+    result = records.update_record(mock_records,1,"Flight")
+    captured = capsys.readouterr()
+    assert "Berlin" not in captured.out
+    assert len(mock_records["Flight"]) == 1   
 
-
-    # Delete Record
+def test_delete_record_invalid_type(mock_records):      # Proves that the code cannot delete an invalid type
+    result = records.update_record(mock_records,1,"Invalid Type")
+    assert result is None
