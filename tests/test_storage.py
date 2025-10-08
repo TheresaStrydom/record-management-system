@@ -1,6 +1,8 @@
-import pytest
+import sys
 import os
-from src.storage import load_records, save_records
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+import pytest
+from storage import load_records, save_records
 
 @pytest.fixture
 def temp_file():
