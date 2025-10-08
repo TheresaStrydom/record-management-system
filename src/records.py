@@ -54,7 +54,7 @@ def search_records(records_json, id_search , type_search):   # Changed default
             return result
         # Invalid Type
         return -2
-    return result # Invalid ID
+    return id_search # Invalid ID
 
 def create_record(records_json, data, type_create):
     """
@@ -226,3 +226,4 @@ def delete_record(records_json,type_delete, client_id=None, airline_id = None):
     else:
         result = -2
         return result # TYPE NOT FOUND
+
