@@ -9,70 +9,23 @@ Deleting records
 And ensures referential integrity
 """
 
-import json
-from pickle import GLOBAL
+import re
 
-with open("records.json",'r') as file:
-    records = json.load(file)
-
-new_client = {
-    "ID": 3,
-    "Type": "Client",
-    "Name": "Sarah Connor",
-    "Address Line 1": "321 Future St",
-    "Address Line 2": "",
-    "Address Line 3": "",
-    "City": "San Francisco",
-    "State": "CA",
-    "Zip Code": "94101",
-    "Country": "USA",
-    "Phone Number": "+1-555-444-5555"
-}
-data_1 = new_client
-
-new_new_client = {
-
-    "Name": "Sarah Connor",
-    "Address Line 1": "321 Future St",
-    "Address Line 2": "",
-    "Address Line 3": "",
-    "City": "San Francisco",
-    "State": "CA",
-    "Zip Code": "94101",
-    "Country": "USA",
-    "Phone Number": "+1-555-444-5555"
-}
-data_4 = new_new_client
-new_airline = {
-    "ID": 3,
-    "Type": "Airline",
-    "Company Name": "British Airways"
-}
-
-new_1_airline = {
-    "Company Name": "British Airways"
-}
-
-data_5 = new_1_airline
-
-data_2 = new_airline
-
-# Build check class?
-
-new_flight = {
-    "Client_ID": 1,
-    "Airline_ID": 1,
-    "Type": "Flight",
-    "Date": "2025-10-01T14:30:00",
-    "Start City": "Cape Town",
-    "End City": "New York"
-        }
-
-data_3 = new_flight
+def validate_input(passed_id):
+    """
+    This function validates that the passed ID is numerical value and casts
+    it to a string if it is or
+    returns -1 if it fails.
+    :param passed_id: The id passed by GUI
+    :return: either the integer value or -1 for failure
+    """
+    if bool(re.fullmatch(r'\d+',passed_id)):
+        passed_id = int(passed_id)
+        return passed_id
+    return -1
 
 
-
-def search_records(records_json, id_search=None,type_search=None):
+def search_records(records_json, id_search , type_search):   # Changed default
     """
     This function searches the json list using a specific id and type
     :param records_json: the json object
@@ -80,46 +33,30 @@ def search_records(records_json, id_search=None,type_search=None):
     :param type_search: the entry type,
     :return: the result of the search
     """
-
-    # Searches the list if only the Type is passed
     result = []
-    if id_search is None:
-        if type_search in records_json:
-            for element in records_json[type_search]:
-                result.append(element)
-            return result
-        else:
-            return print("Invalid Type")
-    # Searches the list if only the ID is passed
-    elif type_search is None:
-        for element, items in records_json.items():
-           for field in items:
-               if field.get('ID') == id_search:
-                   result.append(field)
-               if field.get("Client_ID") == id_search or field.get("Airline_ID") == id_search:
-                   result.append(field)
-        if not result:
-            return print("ID not found")
-        else:
-            return print(result)
-    # Searches the list if both the ID and Type are passed
-    elif type_search is not None and id_search is not None:
-        if type_search in records_json:
-            for element in records_json[type_search]:
-                if element.get("ID") == id_search:
-                    result.append(element)
-                if element.get("Client_ID") == id_search or element.get("Airline_ID") == id_search:
-                    result.append(element)
-            if not result:
-                return print("Invalid ID")
-            else:
-                return print(result)
-        else:
-            return print("Invalid Type")
-    else:
-        return print("Invalid parameters")
 
-def create_record(records_json, data,type_create):
+    id_search = validate_input(id_search)
+
+    if id_search != -1:
+    # Searches the list if only the Type is passed
+        if type_search in records_json:
+            for element in records_json[type_search]:
+                if element.get("ID") == id_search or element.get("Client_ID") == id_search:
+                    try:
+                        result.append(element)
+                    except AttributeError:
+                        print("Error: Record in not a Json object")
+                    except TypeError:
+                        print("Error: Data must be a Json object")
+            if not result:
+                 # ID Not Found
+                return -1
+            return result
+        # Invalid Type
+        return -2
+    return id_search # Invalid ID
+
+def create_record(records_json, data, type_create):
     """
     This function creates a new entry in the json object
     :param records_json: the json object
@@ -127,8 +64,6 @@ def create_record(records_json, data,type_create):
     :param type_create: the type of record that needs to be created
     :return: result of creation
     """
-
-#Need to know how many elements are passed in data for validation
 
     global client, airline
 
@@ -138,90 +73,158 @@ def create_record(records_json, data,type_create):
             if element.get("ID") == data.get("Client_ID"):
                 client = True
                 break
-            else:
-                client = False
+            client = False
         # Test if the Airline_ID in data is in the json record
         for element in records_json["Airline"]:
             if element.get("ID") == data.get("Airline_ID"):
                 airline = True
                 break
-            else:
-                airline = False
+            airline = False
         # Test the result and append Flights
         if client is False:
-            return print("Invalid Client_ID")
-        elif airline is False:
-            return print("Invalid Airline_ID")
-        else:
+            return -1 # Invalid ID
+        if airline is False:
+            return -1 # Invalid ID
+        try:
             records_json['Flight'].append(data)
-            return print(records_json["Flight"])
+        except AttributeError:
+            print("Error: Record in not a Json object")
+        except TypeError:
+            print("Error: Data must be a Json object")
+        return print(records_json["Flight"])
 
     # Test the type_create in the json record, if so, append
-    elif type_create in records_json:
+    if type_create in records_json:
         if records_json[type_create] == [{}]:
             max_id = 0
         else:
-            max_id = max(type_create["ID"] for type_create in records_json[type_create])
+            max_id = max(r["ID"] for r in records_json[type_create])
 
         updates_data = {'ID': max_id + 1, 'Type':type_create}
-        updates_data.update(data)
-        records_json[type_create].append(updates_data)
+        try:
+            updates_data.update(data)
+            records_json[type_create].append(updates_data)
+        except AttributeError:
+            print("Error: Record in not a Json object")
+        except TypeError:
+            print("Error: Data must be a Json object")
     else:
-        return print("Invalid type")
+        return -2 # INVALID TYPE
+
     # Tests if the new record has been updated successfully
     if records_json[type_create][-1] == updates_data:
-        return print("Entry has been created successfully")
-    else:
-        return print("Entry has not been created")     # Return Depends on call.
+        return "Entry has been created successfully"
+    return "Entry has not been created"
 
-def update_record(records_json,id_update,data):
+def update_record(records_json, type_update, data, client_id=None, airline_id =None):
     """
     This function modifies an existing record in the json object
+    :param client_id: The ID of the client
+    :param airline_id: The ID of the airline
     :param records_json: the json object
-    :param id_update: the identification number of the record to update
+    :param type_update: the identification number of the record to update
     :param data: a list of data to update the entry with
     :return: the result of the update
     """
-    element_type = data["Type"]
-    id_pos = id_update-1
 
-    for element in records_json[element_type][id_pos]:
-        updates_data = {element:data[element]}
-        records_json[element_type][id_pos].update(updates_data) # if an empty data is passed then the update will also be empty
+    if type_update == 'Client':
+        # Test if the Client_ID in data is in the json record and updates record
+        client_id = validate_input(client_id)
+        if client_id != -1:
+            for element in records_json["Client"]:
+                if element.get("ID") == client_id:
+                    try:
+                        element.update(data)
+                    except AttributeError:
+                        print("Error: Record in not a Json object")
+                    except TypeError:
+                        print("Error: Data must be a Json object")
+                    return 1 # Successful update
+                # ID NOT FOUND
+                return  -1
+        else:
+            return client_id # Invalid ID
 
-    if records_json[element_type][id_pos] == data:
-         return "Entry has been updated successfully"
+    elif type_update == "Airline":
+        # Test if the Airline_ID in data is in the json record and updates record
+        airline_id =  validate_input(airline_id)
+        if airline_id != -1:
+            for element in records_json["Airline"]:
+                if element.get("ID") == airline_id:
+                    try:
+                        element.update(data)
+                    except AttributeError:
+                        print("Error: Record in not a Json object")
+                    except TypeError:
+                        print("Error: Data must be a Json object")
+                    return 1 # Successful update
+                # ID NOT FOUND
+                return -1
+        else:
+            return airline_id # Invalid ID
+
+    elif type_update == "Flight":
+
+        # Test if the Airline_ID and Client_ID in data in the Json record and updates record
+        client_id = validate_input(client_id)
+        airline_id = validate_input(airline_id)
+
+        if client_id != -1 and airline_id != -1:
+            for element in records_json["Flight"]:
+                if (element.get("Client_ID") == client_id and
+                        element.get("Airline_ID") == airline_id):
+                    try:
+                        element.update(data)
+                    except AttributeError:
+                        print("Error: Record in not a Json object")
+                    except TypeError:
+                        print("Error: Data must be a Json object")
+                    return 1 # Successful update
+                return -1 # IDs NOT FOUND
     else:
-        return "Entry has not been updated"
+        return -2 # TYPE NOT FOUND
 
-
-
-def delete_record(records_json,id_delete,delete_type):
+def delete_record(records_json,type_delete, client_id=None, airline_id = None):
     """
     This function deletes an existing record in the json object
-    :param delete_type: the type of record that will be recorded
+    :param airline_id: The ID of the airline
+    :param type_delete: the type of record that will be deleted
     :param records_json: the json object
-    :param id_delete: the identification number of the record to delete
+    :param client_id: The ID of the client
 
     :return: the result of the json manipulation
     """
-    if delete_type == 'Flight':
-        records_json[delete_type] = [element for element in records_json[delete_type] if
-                                     element["Client_ID"] != id_delete] # Can put OR for airline ID
-    else:
-        if delete_type in records_json:
-            records_json[delete_type] = [element for element in records_json[delete_type] if
-                                         element["ID"] != id_delete]
-        else:
-            return None
-    return print(records_json[delete_type])
-    # if flights then it takes the client ID the GUI may have to request the Client_ID.
+    if type_delete == 'Flight':
+        client_id = validate_input(client_id)
+        airline_id = validate_input(airline_id)
 
-#create_record(records, data_5,'Client')
-#create_record(records,data_2,"Airline")
-#print(create_record(records,data_3,"Flight"))
-#print(records["Clients"])
-#update_record(records,1,data_1)
-#update_record(records,3,data_3)
-#delete_record(records, 1, "Flight")
-#search_records(records,4, "Flight" )
+        if client_id != -1 and airline_id != -1:
+            records_json[type_delete] = [element for element in records_json[type_delete] if
+                                         element["Client_ID"] != client_id and
+                                         element["Airline_ID"] != airline_id]
+        else:
+
+            return client_id # IDs NOT FOUND
+
+    elif type_delete == "Client":
+        client_id = validate_input(client_id)
+
+        if client_id != -1:
+            records_json[type_delete] = [element for element in records_json[type_delete] if
+                                         element["ID"] != client_id]
+        else:
+            return client_id #ID NOT FOUND
+
+    elif type_delete == "Airline":
+        airline_id = validate_input(airline_id)
+
+        if airline_id != -1:
+            records_json[type_delete] = [element for element in records_json[type_delete] if
+                                         element["ID"] != airline_id]
+        else:
+            return airline_id #ID NOT FOUND
+    else:
+        result = -2
+        return result # TYPE NOT FOUND
+
+
