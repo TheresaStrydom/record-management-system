@@ -12,7 +12,7 @@ from records import create_record, delete_record, update_record, search_records 
 from storage import load_records, save_records # import storage functions
 from functools import partial
 
-FILE_PATH = r"C:\Users\theas\OneDrive\MSC\CSCK541 August 2025 B Python\13 Oct Assignment 2 Record management system\src\data\test_records.json"
+FILE_PATH = "data/test_records.json"
 records = load_records(FILE_PATH)
 if not isinstance(records, dict):
     # If records is a list, convert to dict with all records as "Client"
