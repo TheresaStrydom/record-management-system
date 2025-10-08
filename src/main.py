@@ -12,8 +12,11 @@ from records import create_record, delete_record, update_record, search_records 
 from storage import load_records, save_records # import storage functions
 from functools import partial
 
-FILE_PATH = 'data/test_records.json'
+FILE_PATH = r"C:\Users\theas\OneDrive\MSC\CSCK541 August 2025 B Python\13 Oct Assignment 2 Record management system\src\data\test_records.json"
 records = load_records(FILE_PATH)
+if not isinstance(records, dict):
+    # If records is a list, convert to dict with all records as "Client"
+    records = {"Client": records, "Airline": [], "Flight": []}
 
 
 
@@ -59,20 +62,25 @@ def main():
         tree.column(col, width=100)
         tree.pack(fill="both", expand=True)
 
-    # Display all records when GUI starts
-    for record_type in records:
-        for record in records[record_type]:
-            # Only display if record is a dict and has an "ID" field
-            if isinstance(record, dict) and "ID" in record:
-                values = (
-                    record.get("ID", ""),
-                    record.get("Type", ""),
-                    record.get("Name", ""),
-                    record.get("Address Line 1", ""),
-                    record.get("City", ""),
-                    record.get("Phone Number", "")
-                )
-                tree.insert("", "end", values=values)
+    def refresh_treeview():
+        # Clear the Treeview and repopulate it with current records
+        for row in tree.get_children():
+            tree.delete(row)
+        for record_type in records:
+            for record in records[record_type]:
+                if isinstance(record, dict) and "ID" in record:
+                    values = (
+                        record.get("ID", ""),
+                        record.get("Type", ""),
+                        record.get("Name", ""),
+                        record.get("Address Line 1", ""),
+                        record.get("City", ""),
+                        record.get("Phone Number", "")
+                    )
+                    tree.insert("", "end", values=values)
+
+    # After tree.pack(fill="both", expand=True)
+    refresh_treeview()
 
     # create_record
     def create_record_popup():
@@ -263,20 +271,8 @@ def main():
                 save_records(records, FILE_PATH)
                 messagebox.showinfo("Success", f"Updated: {', '.join(updated_fields)} successfully.")
                 # Refresh Treeview
-                for row in tree.get_children():
-                    tree.delete(row)
-                for record_type in records:
-                    for record in records[record_type]:
-                        values = (
-                            record.get("ID", ""),
-                            record.get("Type", ""),
-                            record.get("Name", ""),
-                            record.get("Address Line 1", ""),
-                            record.get("City", ""),
-                            record.get("Phone Number", "")
-                        )
-                        tree.insert("", "end", values=values)
-                update_window.destroy()
+                refresh_treeview()
+                
             except Exception as exc:
                 messagebox.showerror("Update Error", str(exc))
 
@@ -345,19 +341,7 @@ def main():
             # Refresh the Treeview to reflect deletion
             for row in tree.get_children():
                 tree.delete(row)
-            for record_type in records:
-                for record in records[record_type]:
-                    # Only display if record is a dict (not a string or empty)
-                    if isinstance(record, dict):
-                        values = (
-                            record.get("ID", ""),
-                            record.get("Type", ""),
-                            record.get("Name", ""),
-                            record.get("Address Line 1", ""),
-                            record.get("City", ""),
-                            record.get("Phone Number", "")
-                        )
-                        tree.insert("", "end", values=values)
+            refresh_treeview()
             delete_window.destroy()
 
         tk.Button(delete_window, text="Delete", command=submit_delete).grid(row=5, column=9, pady=12)
@@ -396,7 +380,11 @@ def main():
             if not record_id:
                 messagebox.showwarning("Input Error", "ID cannot be blank.")
                 return
-            # Call your backend search function
+            # No need to convert to int, just check it's digits
+            if not record_id.isdigit():
+                messagebox.showerror("Input Error", "ID must be a number.")
+                return
+            # Pass as string to backend
             results = search_records(records, record_id, selected_type)
             if results == -1:
                 messagebox.showerror("Invalid ID", "No record found with that ID.")
@@ -408,17 +396,18 @@ def main():
             for row in tree.get_children():
                 tree.delete(row)
             for record in results:
-                values = (
-                    record.get("ID", ""),
-                    record.get("Type", ""),
-                    record.get("Name", ""),
-                    record.get("Address Line 1", ""),
-                    record.get("City", ""),
-                    record.get("Phone Number", "")
-                )
-                tree.insert("", "end", values=values)
+                if isinstance(record, dict):
+                    values = (
+                        record.get("ID", ""),
+                        record.get("Type", ""),
+                        record.get("Name", ""),
+                        record.get("Address Line 1", ""),
+                        record.get("City", ""),
+                        record.get("Phone Number", "")
+                    )
+                    tree.insert("", "end", values=values)
             search_window.destroy()
-   
+    
         def clear_search():
             """
             Clear the ID entry and reset the Treeview to show all records of the selected type.
