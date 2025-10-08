@@ -1,5 +1,5 @@
 {
-  "Clients": [
+  "Client": [
     {
       "ID": 1,
       "Type": "Client",
@@ -547,7 +547,7 @@
       "Phone Number": "+44 1223 234 5678"
     }
   ],
-"Airlines": [
+"Airline": [
   {
     "ID": 1,
     "Type": "Airline",
@@ -609,7 +609,7 @@
     "Company Name": "Emirates"
   }
 ],
-"Flights": [
+"Flight": [
   {
     "Client_ID": 1,
     "Airline_ID": 1,
