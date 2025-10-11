@@ -64,19 +64,27 @@ def main():
 
     def refresh_treeview():
         # Clear the Treeview and repopulate it with current records
-        for row in tree.get_children():
-            tree.delete(row)
         for record_type in records:
             for record in records[record_type]:
                 if isinstance(record, dict) and "ID" in record:
-                    values = (
-                        record.get("ID", ""),
-                        record.get("Type", ""),
-                        record.get("Name", ""),
-                        record.get("Address Line 1", ""),
-                        record.get("City", ""),
-                        record.get("Phone Number", "")
-                    )
+                    if record_type == "Airline":
+                        values = (
+                            record.get("ID", ""),
+                            record.get("Type", ""),
+                            record.get("Company Name", ""),  # Show company name in "Name" column
+                            "",  # Address Line 1
+                            "",  # City
+                            ""   # Phone Number
+                        )
+                    else:
+                        values = (
+                            record.get("ID", ""),
+                            record.get("Type", ""),
+                            record.get("Name", ""),
+                            record.get("Address Line 1", ""),
+                            record.get("City", ""),
+                            record.get("Phone Number", "")
+                        )
                     tree.insert("", "end", values=values)
 
     # After tree.pack(fill="both", expand=True)
