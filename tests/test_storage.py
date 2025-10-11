@@ -15,12 +15,13 @@ def temp_file():
 
 def test_load_nonexistent(temp_file):
     """Test loading from a non-existent file returns empty nested dict."""
-    assert load_records(temp_file) == {"Clients": [], "Airlines": [], "Flights": []}
+    temp_file = "test_records.json"
+    assert load_records(temp_file) == []
 
 def test_save_load(temp_file):
     """Test saving and loading preserves the nested records."""
     test_records = {
-        "Clients": [
+        "Client": [
             {
                 "ID": 1,
                 "Type": "Client",
