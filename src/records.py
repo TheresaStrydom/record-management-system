@@ -14,7 +14,7 @@ import re
 def validate_input(passed_id):
     """
     This function validates that the passed ID is numerical value and casts
-    it to a string if it is or
+    it to a integer if it is or
     returns -1 if it fails.
     :param passed_id: The id passed by GUI
     :return: either the integer value or -1 for failure
@@ -228,6 +228,7 @@ def delete_record(records_json,type_delete, client_id=None, airline_id = None):
     else:
         result = -2
         return result # TYPE NOT FOUND
+
 
 
 
