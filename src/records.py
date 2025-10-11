@@ -140,8 +140,8 @@ def update_record(records_json, type_update, data, client_id=None, airline_id =N
                     except TypeError:
                         print("Error: Data must be a Json object")
                     return 1 # Successful update
-                # ID NOT FOUND
-                return  -1
+            # ID NOT FOUND
+            return  -1
         else:
             return client_id # Invalid ID
 
@@ -226,5 +226,6 @@ def delete_record(records_json,type_delete, client_id=None, airline_id = None):
     else:
         result = -2
         return result # TYPE NOT FOUND
+
 
 
