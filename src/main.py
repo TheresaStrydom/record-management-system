@@ -11,9 +11,10 @@ from tkinter import ttk, messagebox
 from records import create_record, delete_record, update_record, search_records, validate_input  # import CRUD functions
 from storage import load_records, save_records # import storage functions
 from functools import partial
+import os
 
 # Load records with the correct file path
-FILE_PATH = r"C:\Users\theas\OneDrive\MSC\CSCK541 August 2025 B Python\13 Oct Assignment 2 Record management system\src\data\test_records.json"
+FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "test_records.json")
 records = load_records(FILE_PATH)
 
 if not isinstance(records, dict):
