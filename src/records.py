@@ -19,12 +19,13 @@ def validate_input(passed_id):
     :param passed_id: The id passed by GUI
     :return: either the integer value or -1 for failure
     """
-    if type(passed_id) == 'str':
+    if type(passed_id) == str:
         if bool(re.fullmatch(r'\d+',passed_id)):
             passed_id = int(passed_id)
             return passed_id
         return -1
-    return passed_id
+    elif type(passed_id) == int:
+        return passed_id
 
 
 def search_records(records_json, id_search , type_search):   # Changed default
@@ -228,6 +229,7 @@ def delete_record(records_json,type_delete, client_id=None, airline_id = None):
     else:
         result = -2
         return result # TYPE NOT FOUND
+
 
 
 
