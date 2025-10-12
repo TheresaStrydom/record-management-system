@@ -18,6 +18,7 @@ Handles persistence of records using JSON.
 ## Running Tests
 Install pytest: `pip install pytest` (in venv).
 Run: `pytest tests/test_storage.py` (or python -m pytest tests/test_storage.py if PATH issues occur; requires pytest installed in venv). (verifies load/save for storage module).
+Run: `pytest tests/test_records.py` (or python -m pytest tests/test_records.py if PATH issues occur; requires pytest installed in venv). (verifies load/save for storage module).
 
 ## Setup
 1. Activate venv: `.venv\Scripts\activate.bat` (cmd).
