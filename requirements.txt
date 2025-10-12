@@ -1,2 +1,4 @@
 jsonlines
 pytest
+python 3.12 
+tkinter 8.6 
