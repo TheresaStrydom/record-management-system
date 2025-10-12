@@ -15,18 +15,16 @@ from functools import partial
 # Load records with the correct file path
 FILE_PATH = r"C:\Users\theas\OneDrive\MSC\CSCK541 August 2025 B Python\13 Oct Assignment 2 Record management system\src\data\test_records.json"
 records = load_records(FILE_PATH)
-print(f"Loaded records: {records}")  # Debug print
+
 if not isinstance(records, dict):
     # If records is a list, convert to dict with all records as "Client"
     records = {"Client": records, "Airline": [], "Flight": []}
-    print(f"Adjusted records: {records}")  # Debug print
-
-
-
-    
+        
 def main():
+    """Main function to initialize and run the GUI application."""
 
     def get_fields_for_type(record_type):
+        """Return field definitions for a given record type."""
         if record_type == "Client":
             return [
                 ("ID (Auto):", tk.Entry, {"state": "disabled"}),
@@ -56,31 +54,33 @@ def main():
         return []
     
     def set_section(section):
-        current_section.set(section)
-        refresh_treeview()
+        """Set the current section and refresh the treeview."""
         current_section.set(section)
         refresh_treeview()
 
+    # Initialize main window    
     root = tk.Tk()
     root.title("Record Management System - Accessible Interface")
     root.geometry("1200x600")
     root.configure(bg="#333333")
 
+    # Variable to track current section
     current_section = tk.StringVar(value="Client")
 
-    # Control frame with three buttons at the top
+    # Create control frame with section selection buttons
     control_frame = tk.Frame(root, bg="#333333")
     control_frame.pack(pady=10)
     tk.Button(control_frame, text="Client", command=lambda: set_section("Client"), font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
     tk.Button(control_frame, text="Airline", command=lambda: set_section("Airline"), font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
     tk.Button(control_frame, text="Flight", command=lambda: set_section("Flight"), font=("Arial", 12)).pack(side=tk.LEFT, padx=5)
 
-    # Display Area
+    # Create display frame for records
     display_frame = tk.Frame(root, bg="#333333")
     display_frame.pack(pady=10, fill="both", expand=True)
     tk.Label(display_frame, text="Records:", fg="white", bg="#333333").pack()
 
     def update_treeview_columns():
+        """Configure treeview columns based on the current section."""
         record_type = current_section.get()
         if record_type == "Client":
             columns = ("ID", "Name", "Address Line 1","Address Line 2","Zip Code", "Country" "Address Line 3", "City", "Phone Number")
@@ -97,6 +97,7 @@ def main():
             tree.heading(col, text=col)
 
     def setup_treeview():
+        """Initialize the treeview widget for displaying records."""
         global tree
         tree = ttk.Treeview(display_frame, show="headings")
         update_treeview_columns()
@@ -105,6 +106,7 @@ def main():
     setup_treeview()
 
     def refresh_treeview():
+        """Refresh treeview to display records for the current section."""
         for item in tree.get_children():
             tree.delete(item)
         update_treeview_columns()
@@ -139,7 +141,7 @@ def main():
                 tree.insert("", "end", values=values)
 
    
-    # Form Section with Search
+    # Create form frame for search functionality
     form_frame = tk.Frame(root, bg="#333333")
     form_frame.pack(pady=10)
     
@@ -154,6 +156,7 @@ def main():
     id_entry.grid(row=1, column=1, padx=5, pady=10)
 
     def submit_search():
+        """Search for records by ID and display results in treeview."""
         selected_type = type_var_popup.get()
         record_id = id_entry.get().strip()
         if not record_id:
@@ -164,6 +167,7 @@ def main():
             return
 
         results = search_records(records, record_id, selected_type)
+        print(f"Search results for Client ID {record_id}: {results}") # Debugging output
 
         if results == -1:
             messagebox.showerror("Invalid ID", "No record found with that ID.")
@@ -171,14 +175,21 @@ def main():
         elif results == -2:
             messagebox.showerror("Invalid Type", "No such type in the database.")
             return
-
+        
+        # Clear current treeview
         for row in tree.get_children():
             tree.delete(row)
        
-        for record in results:
-            if isinstance(record, dict):
-                if selected_type == "Client":
-                    # Show client details
+        if selected_type == "Client":
+            # Set columns for client display
+            tree["columns"] = ("ID", "Name", "Address Line 1", "Address Line 2", "Address Line 3", "City", "State", "Zip Code", "Country", "Phone Number")
+            for col in tree["columns"]:
+                tree.column(col, width=60 if col == "ID" else 120)
+                tree.heading(col, text=col)
+            
+            # Insert client records
+            for record in results:
+                if isinstance(record, dict):
                     values = (
                         record.get("ID", ""),
                         record.get("Name", ""),
@@ -193,59 +204,92 @@ def main():
                     )
                     tree.insert("", "end", values=values)
 
-                    # Show all flights for this client
-                    client_id_val = record.get("ID", "")
+                    # Find and display associated flights
+                    client_id_val = int(record.get("ID", 0))  # Convert to int for comparison
                     flights = [f for f in records["Flight"] if f.get("Client_ID") == client_id_val]
-                    for flight in flights:
-                        airline = next((a for a in records["Airline"] if a.get("ID") == flight.get("Airline_ID")), {})
-                        flight_values = (
-                            f"Flight: C:{flight.get('Client_ID', '')}/A:{flight.get('Airline_ID', '')}",
-                            flight.get("Date", ""),
-                            flight.get("Start City", ""),
-                            flight.get("End City", ""),
-                            f"Airline: {airline.get('Company Name', '')}"
-                        )
-                        tree.insert("", "end", values=flight_values)
-                                                
-                elif selected_type == "Airline":
-                   # Show airline details first
+                    if flights:
+                        # Temporarily set columns for flight display
+                        tree["columns"] = ("Client_ID/Airline_ID", "Date", "Start City", "End City", "Airline Name")
+                        for col in tree["columns"]:
+                            tree.column(col, width=120)
+                            tree.heading(col, text=col)
+                        
+                        # Insert flight records
+                        for flight in flights:
+                            airline = next((a for a in records["Airline"] if a.get("ID") == flight.get("Airline_ID")), {})
+                            flight_values = (
+                                f"C:{flight.get('Client_ID', '')}/A:{flight.get('Airline_ID', '')}",
+                                flight.get("Date", ""),
+                                flight.get("Start City", ""),
+                                flight.get("End City", ""),
+                                airline.get("Company Name", "")
+                            )
+                            tree.insert("", "end", values=flight_values)
+                        
+                        # Restore client columns
+                        tree["columns"] = ("ID", "Name", "Address Line 1", "Address Line 2", "Address Line 3", "City", "State", "Zip Code", "Country", "Phone Number")
+                        for col in tree["columns"]:
+                            tree.column(col, width=60 if col == "ID" else 120)
+                            tree.heading(col, text=col)
+                
+                
+        elif selected_type == "Airline":
+            # Set columns for airline display
+            tree["columns"] = ("ID", "Company Name")
+            for col in tree["columns"]:
+                tree.column(col, width=60 if col == "ID" else 120)
+                tree.heading(col, text=col)
+            
+            # Insert airline records
+            for record in results:
+                if isinstance(record, dict):
                     values = (
                         record.get("ID", ""),
                         record.get("Company Name", "")
                     )
                     tree.insert("", "end", values=values)
 
-                    # Show all clients taking this airline
-                    airline_id_val = record.get("ID", "")
+                    # Find and display associated clients via flights
+                    airline_id_val = int(record.get("ID", 0))
                     flights = [f for f in records["Flight"] if f.get("Airline_ID") == airline_id_val]
                     client_ids = set(f.get("Client_ID") for f in flights)
-                    for client_id in client_ids:
-                        client = next((c for c in records["Client"] if c.get("ID") == client_id), None)
-                        if client:
-                            client_values = (
-                                f"Client: {client.get('ID', '')}",
-                                client.get("Name", ""),
-                                client.get("Address Line 1", ""),
-                                client.get("City", ""),
-                                client.get("Phone Number", "")
-                            )
-                            tree.insert("", "end", values=client_values)
+                    if client_ids:
+                        # Temporarily set columns for client display
+                        tree["columns"] = ("Client ID", "Name", "Address Line 1", "City", "Phone Number")
+                        for col in tree["columns"]:
+                            tree.column(col, width=120)
+                            tree.heading(col, text=col)
+                        
+                        # Insert client records
+                        for client_id in client_ids:
+                            client = next((c for c in records["Client"] if c.get("ID") == client_id), None)
+                            if client:
+                                client_values = (
+                                    f"C:{client.get('ID', '')}",
+                                    client.get("Name", ""),
+                                    client.get("Address Line 1", ""),
+                                    client.get("City", ""),
+                                    client.get("Phone Number", "")
+                                )
+                                tree.insert("", "end", values=client_values)
+                        
+                        # Restore airline columns
+                        tree["columns"] = ("ID", "Company Name")
+                        for col in tree["columns"]:
+                            tree.column(col, width=60 if col == "ID" else 120)
+                            tree.heading(col, text=col)
 
-    
     tk.Button(form_frame, text="Search", command=submit_search).grid(row=2, column=1, pady=10)
-    
-    # Keyboard shortcuts
+
+    # Bind keyboard shortcuts for CRUD operations
     root.bind("<Alt-c>", lambda e: create_record_popup())
     root.bind("<Alt-d>", lambda e: delete_record_popup())
     root.bind("<Alt-u>", lambda e: update_record_popup())
     root.bind("<Alt-s>", lambda e: submit_search())
 
-    # Modify refresh_treeview to filter by current_section
+    
     def create_record_popup():
-        """
-        Display a pop-up form to create a new record based on the current section.
-        Raises ValueError with a specific message if validation fails.
-        """
+        """Display a pop-up form to create a new record based on the current section."""
         selected_type = current_section.get()  # Use current section instead of dropdown
         create_window = tk.Toplevel(root)
         create_window.title(f"Create {selected_type} Record")
@@ -261,10 +305,7 @@ def main():
             entries[label_text.split(":")[0]] = entry
         
         def submit():
-            """
-            Handle form submission, collecting data and integrating with backend.
-            Show specific validation errors to the user for outstanding feedback.
-            """
+            """Handle form submission for creating a new record."""
             record_data = {key: entry.get() for key, entry in entries.items() if key != "ID (Auto)"}
             # Require all fields for Client
             if selected_type == "Client":
@@ -302,11 +343,7 @@ def main():
     refresh_treeview()
 
     def update_record_popup():
-        """
-        Display a pop-up to update a record.
-        Shows all fields from create, plus Client ID, Airline ID, and Flight tickbox.
-        Only ticked fields are enabled and passed to backend.
-        """
+        """Display a pop-up to update a record with selectable fields."""
         update_window = tk.Toplevel(root)
         update_window.title("Update Record")
         update_window.geometry("500x700")
@@ -352,7 +389,7 @@ def main():
         checkbuttons = {}
 
         def toggle_entry(field):
-            """Enable/disable entry based on checkbox."""
+            """Enable or disable entry field based on checkbox state."""
             #print(f"Field: {field}, Checked: {check_vars[field].get()}")  # Debug print
             if check_vars[field].get():
                 entries[field].config(state="normal")
@@ -379,122 +416,114 @@ def main():
             entry.grid(row=i+5, column=2, padx=5)
             entries[field] = entry
 
+    def submit_search():
+        """Search for records by ID and display results, including flights for clients."""
+        selected_type = type_var_popup.get()
+        record_id = id_entry.get().strip()
+        if not record_id:
+            messagebox.showwarning("Input Error", "ID cannot be blank.")
+            return
+        if not record_id.isdigit():
+            messagebox.showerror("Input Error", "ID must be a number.")
+            return
+
+        results = search_records(records, record_id, selected_type)
+
+        if results == -1:
+            messagebox.showerror("Invalid ID", "No record found with that ID.")
+            return
+        elif results == -2:
+            messagebox.showerror("Invalid Type", "No such type in the database.")
+            return
+
+        # Clear current treeview
+        for row in tree.get_children():
+            tree.delete(row)
+
+        # Use a unified column set to accommodate both client and flight data
+        tree["columns"] = ("ID", "Name/Description", "Address Line 1/Date", "Address Line 2/Start City", "Address Line 3/End City", "City/Airline", "State", "Zip Code", "Country", "Phone Number")
+        for col in tree["columns"]:
+            tree.column(col, width=60 if col == "ID" else 120)
+            tree.heading(col, text=col)
+
+        if selected_type == "Client":
+            # Insert client records
+            for record in results:
+                if isinstance(record, dict):
+                    values = (
+                        record.get("ID", ""),
+                        record.get("Name", ""),
+                        record.get("Address Line 1", ""),
+                        record.get("Address Line 2", ""),
+                        record.get("Address Line 3", ""),
+                        record.get("City", ""),
+                        record.get("State", ""),
+                        record.get("Zip Code", ""),
+                        record.get("Country", ""),
+                        record.get("Phone Number", "")
+                    )
+                    tree.insert("", "end", values=values)
+
+                    # Find and display associated flights
+                    client_id_val = int(record.get("ID", 0))  # Convert to int for comparison
+                    print(f"Searching flights for Client ID {client_id_val}")
+                    flights = [f for f in records["Flight"] if f.get("Client_ID") == client_id_val or str(f.get("Client_ID")) == str(client_id_val)]
+                    print(f"Flights found: {flights}")
+                    try:
+                        for flight in flights:
+                            airline = next((a for a in records["Airline"] if a.get("ID") == flight.get("Airline_ID")), {})
+                            flight_values = (
+                                f"F:{flight.get('Client_ID', '')}/{flight.get('Airline_ID', '')}",
+                                f"Flight: {flight.get('Client_ID', '')}/{flight.get('Airline_ID', '')}",
+                                flight.get("Date", ""),
+                                flight.get("Start City", ""),
+                                flight.get("End City", ""),
+                                airline.get("Company Name", ""),
+                                "", "", "", ""  # Pad with empty strings to match column count
+                            )
+                            tree.insert("", "end", values=flight_values)
+                    except Exception as e:
+                        print(f"Error inserting flight data: {str(e)}")
+                        messagebox.showerror("Display Error", f"Failed to display flights: {str(e)}")
         
+        elif selected_type == "Airline":
+            # Insert airline records
+            for record in results:
+                if isinstance(record, dict):
+                    values = (
+                        record.get("ID", ""),
+                        record.get("Company Name", ""),
+                        "", "", "", "", "", "", "", ""  # Pad with empty strings
+                    )
+                    tree.insert("", "end", values=values)
 
-        def submit_update():
-            """
-            Validate and submit the update.
-            Only ticked fields and ID(s) are sent to backend.
-            """
-            client_id = client_id_entry.get().strip()
-            airline_id = airline_id_entry.get().strip()
-            is_flight = flight_var.get()
+                    # Find and display associated clients via flights
+                    airline_id_val = int(record.get("ID", 0))
+                    print(f"Searching flights for Airline ID {airline_id_val}")
+                    flights = [f for f in records["Flight"] if f.get("Airline_ID") == airline_id_val or str(f.get("Airline_ID")) == str(airline_id_val)]
+                    print(f"Flights found: {flights}")
+                    client_ids = set(f.get("Client_ID") for f in flights)
+                    try:
+                        for client_id in client_ids:
+                            client = next((c for c in records["Client"] if c.get("ID") == client_id or str(c.get("ID")) == str(client_id)), None)
+                            if client:
+                                client_values = (
+                                    f"C:{client.get('ID', '')}",
+                                    client.get("Name", ""),
+                                    client.get("Address Line 1", ""),
+                                    client.get("Address Line 2", ""),
+                                    client.get("Address Line 3", ""),
+                                    client.get("City", ""),
+                                    client.get("State", ""),
+                                    client.get("Zip Code", ""),
+                                    client.get("Country", ""),
+                                    client.get("Phone Number", "")
+                                )
+                                tree.insert("", "end", values=client_values)
+                    except Exception as e:
+                        print(f"Error inserting client data: {str(e)}")
+                        messagebox.showerror("Display Error", f"Failed to display clients: {str(e)}")
 
-            # Build update data
-            update_data = {}
-            updated_fields = []
-            for field, var in check_vars.items():
-                if var.get():
-                    value = entries[field].get().strip()
-                    if not value:
-                        messagebox.showwarning("Input Error", f"{field} is ticked but empty.")
-                        return
-                    update_data[field] = value
-                    updated_fields.append(field)
-
-            if not updated_fields:
-                messagebox.showwarning("Input Error", "Please tick and fill at least one field to update.")
-                return
-
-            # Keep IDs as strings for validate_input in records.py
-            client_id_val = client_id if client_id.isdigit() else None
-            airline_id_val = airline_id if airline_id.isdigit() else None
-
-            # Debug print to inspect inputs
-            print(f"Submitting update: type={is_flight and 'Flight' or (client_id_val and 'Client' or 'Airline')}, "
-                f"client_id={client_id_val}, airline_id={airline_id_val}, update_data={update_data}")
-
-            # Validate IDs
-            if is_flight:
-                if not client_id_val or not airline_id_val:
-                    messagebox.showwarning("Input Error", "Both Client ID and Airline ID must be filled for Flight update.")
-                    return
-                flight_exists = any(
-                    record.get("Client_ID") == int(client_id_val) and record.get("Airline_ID") == int(airline_id_val)
-                    for record in records["Flight"] if isinstance(record, dict)
-                )
-                if not flight_exists:
-                    messagebox.showerror("Input Error", f"No Flight record found with Client ID {client_id_val} and Airline ID {airline_id_val}.")
-                    return
-            else:
-                if client_id_val and not airline_id_val:
-                    client_exists = any(record.get("ID") == int(client_id_val) for record in records["Client"] if isinstance(record, dict))
-                    if not client_exists:
-                        messagebox.showerror("Input Error", f"No Client record found with ID {client_id_val}.")
-                        return
-                elif airline_id_val and not client_id_val:
-                    airline_exists = any(record.get("ID") == int(airline_id_val) for record in records["Airline"] if isinstance(record, dict))
-                    if not airline_exists:
-                        messagebox.showerror("Input Error", f"No Airline record found with ID {airline_id_val}.")
-                        return
-                else:
-                    messagebox.showwarning("Input Error", "Please enter either Client ID or Airline ID for update.")
-                    return
-
-            try:
-                # Perform the update
-                result = None
-                if is_flight:
-                    result = update_record(records, "Flight", update_data, client_id=client_id_val, airline_id=airline_id_val)
-                else:
-                    if client_id_val and not airline_id_val:
-                        result = update_record(records, "Client", update_data, client_id=client_id_val)
-                    elif airline_id_val and not client_id_val:
-                        result = update_record(records, "Airline", update_data, airline_id=airline_id_val)
-
-                print(f"update_record result: {result}")  # Debug print
-
-                if result != 1:
-                    if result == -1:
-                        messagebox.showerror("Update Error", "No record found with the provided ID(s).")
-                    elif result == -2:
-                        messagebox.showerror("Update Error", "Invalid record type.")
-                    else:
-                        messagebox.showerror("Update Error", f"Update failed with result: {result}")
-                    return
-
-                # Save records to file
-                try:
-                    save_records(records, FILE_PATH)
-                    print("Records saved successfully")  # Debug print
-                except Exception as save_exc:
-                    print(f"Error saving records: {str(save_exc)}")  # Debug print
-                    messagebox.showerror("Save Error", f"Record updated but failed to save to file: {str(save_exc)}")
-                    return
-
-                # Show success message
-                messagebox.showinfo("Success", f"Updated: {', '.join(updated_fields)} successfully.")
-
-                # Refresh Treeview
-                try:
-                    refresh_treeview()
-                    print("Treeview refreshed successfully")  # Debug print
-                except Exception as refresh_exc:
-                    print(f"Error refreshing Treeview: {str(refresh_exc)}")  # Debug print
-                    messagebox.showerror("Display Error", f"Record updated but failed to refresh display: {str(refresh_exc)}")
-                    return
-
-                # Close the update window
-                try:
-                    update_window.destroy()
-                    print("Update window closed successfully")  # Debug print
-                except Exception as destroy_exc:
-                    print(f"Error closing update window: {str(destroy_exc)}")  # Debug print
-                    messagebox.showerror("Window Error", f"Record updated but failed to close window: {str(destroy_exc)}")
-
-            except Exception as exc:
-                print(f"Unexpected error in update: {str(exc)}")  # Debug print
-                messagebox.showerror("Update Error", f"Failed to process update: {str(exc)}")
         
         tk.Button(update_window, text="Update", command=submit_update).grid(row=len(updatable_fields)+6, column=2, pady=20)
         update_window.transient(root)
@@ -527,6 +556,7 @@ def main():
         tk.Checkbutton(delete_window, text="Delete Flight (requires both IDs)", variable=flight_var, bg="#333333", fg="white").grid(row=5, column=0, columnspan=2, sticky="w")
 
         def submit_delete():
+            """Handle deletion of a record based on provided IDs."""
             airline_id = airline_id_entry.get().strip()
             client_id = client_id_entry.get().strip()
             is_flight = flight_var.get()
@@ -574,54 +604,7 @@ def main():
         tk.Label(form_frame, text="ID:", fg="white", bg="#333333").grid(row=1, column=0, sticky="e", pady=10)
         id_entry = tk.Entry(form_frame)
         id_entry.grid(row=1, column=1, padx=5, pady=10)
-
-
-        def submit_search():
-            selected_type = type_var_popup.get()
-            record_id = id_entry.get().strip()
-            if not record_id:
-                messagebox.showwarning("Input Error", "ID cannot be blank.")
-                return
-            if not record_id.isdigit():
-                messagebox.showerror("Input Error", "ID must be a number.")
-                return
-           
-            results = search_records(records, record_id, selected_type)
-            
-            if results == -1:
-                messagebox.showerror("Invalid ID", "No record found with that ID.")
-                return
-            elif results == -2:
-                messagebox.showerror("Invalid Type", "No such type in the database.")
-                return
-            for row in tree.get_children():
-                tree.delete(row)
-            for record in results:
-                if isinstance(record, dict):
-                    if selected_type == "Client":
-                        values = (
-                            record.get("ID", ""),
-                            record.get("Name", ""),
-                            record.get("Address Line 1", ""),
-                            record.get("City", ""),
-                            record.get("Phone Number", "")
-                        )
-                    elif selected_type == "Airline":
-                        values = (
-                            record.get("ID", ""),
-                            record.get("Company Name", "")
-                        )
-                    elif selected_type == "Flight":
-                        values = (
-                            f"C:{record.get('Client_ID', '')}/A:{record.get('Airline_ID', '')}",
-                            record.get("Date", ""),
-                            record.get("Start City", ""),
-                            record.get("End City", "")
-                        )
-                    tree.insert("", "end", values=values)
- 
-        
-    
+         
     
    
      # CRUD buttons
