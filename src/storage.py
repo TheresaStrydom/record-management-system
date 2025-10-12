@@ -12,13 +12,13 @@ def load_records(file_path='../records.json'):
                 return json.load(f)
         except json.JSONDecodeError:
             print("Error: Corrupted JSON file. Starting with an empty dict.")
-            return {"Clients": [], "Airlines": [], "Flights": []}
+            return {"Client": [], "Airline": [], "Flight": []}
         except Exception as e:
             print(f"Error loading records: {e}")
-            return {"Clients": [], "Airlines": [], "Flights": []}
+            return {"Client": [], "Airline": [], "Flight": []}
     else:
         print("No records file found. Starting with an empty dict.")
-    return {"Clients": [], "Airlines": [], "Flights": []}
+    return {"Client": [], "Airline": [], "Flight": []}
 
 def save_records(records, file_path='../records.json'):
     """
@@ -37,7 +37,7 @@ def save_records(records, file_path='../records.json'):
 if __name__ == "__main__":
     # Sample nested records
     test_records = {
-        "Clients": [
+        "Client": [
             {
                 "ID": 1,
                 "Type": "Client",
@@ -52,14 +52,14 @@ if __name__ == "__main__":
                 "Phone Number": "123-456-7890"
             }
         ],
-        "Airlines": [
+        "Airline": [
             {
                 "ID": 1,
                 "Type": "Airline",
                 "Company Name": "FlyHigh Airlines"
             }
         ],
-        "Flights": [
+        "Flight": [
             {
                 "Client_ID": 1,
                 "Airline_ID": 1,
